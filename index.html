@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>SEN55 Graphs</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <div>
+            <h1>Last Data</h1>
+            <p id="lastData"></p>
+            <br><hr>
+            <h1>Last 100 data</h1>
+            <canvas id="last100"></canvas>
+            <br><hr>
+            <h1>Last 100 Minute Intervals</h1>
+            <canvas id="last100minutes"></canvas>
+            <br><hr>
+            <h1>Last 100 15 Minute Intervals</h1>
+            <canvas id="last15minutes"></canvas>
+            <br><hr>
+            <h1>Last 100 Hour Intervals</h1>
+            <canvas id="last100hours"></canvas>
+        </div>
+    </body>
+    <script>
+        (async () => {
+            // Get the data and massage it to readable format
+            const resp = await fetch('/data');
+            const rawData = await resp.json();
+            console.log('rawData', rawData)
+            const timeScales = Object.keys(rawData[Object.keys(rawData)[0]]);
+            console.log("timescales", timeScales);
+            let data = timeScales.reduce((ret, currScale) => {
+                ret[currScale] = Object.keys(rawData).reduce((sensorRet, currSensor) => {
+                        // sensorRet[currSensor] = rawData[currSensor][currScale];
+                        if (sensorRet.datasets.length === 0) {
+                            sensorRet['labels'] = (rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => new Date(point.time).toTimeString().split(' ')[0]))
+                        }
+                        sensorRet.datasets.push({
+                            label: currSensor,
+                            data: rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val),
+                            borderWidth: 1
+                        });
+
+                        return sensorRet;
+                    }, {labels: [], datasets: []})
+
+                return ret;
+            }, {});
+            console.log('data', data);
+
+            // Charts
+            const last100 = document.getElementById('last100');
+            new Chart(last100, {
+                type: 'line',
+                data: data.last100,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            ticks: {
+                                display: true,
+                                autoSkip: true,
+                                maxTicksLimit: 20,
+                            },
+                        },
+                    }
+                }
+            });
+            const last100minutes = document.getElementById('last100minutes');
+            new Chart(last100minutes, {
+                type: 'line',
+                data: data.last100MinuteIntervals,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            ticks: {
+                                display: true,
+                                autoSkip: true,
+                                maxTicksLimit: 20,
+                            },
+                        },
+                    }
+                }
+            });
+            const last15minutes = document.getElementById('last15minutes');
+            new Chart(last15minutes, {
+                type: 'line',
+                data: data.last100FifteenMinuteIntervals,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            ticks: {
+                                display: true,
+                                autoSkip: true,
+                                maxTicksLimit: 20,
+                            },
+                        },
+                    }
+                }
+            });
+            const last100hours = document.getElementById('last100hours');
+            new Chart(last100hours, {
+                type: 'line',
+                data: data.last100HourIntervals,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            ticks: {
+                                display: true,
+                                autoSkip: true,
+                                maxTicksLimit: 20,
+                            },
+                        },
+                    }
+                }
+            });
+
+            document.getElementById('lastData').innerHTML = `
+                &emsp;<b>PM1P0</b> ${rawData['sen55/pm1p0'].last100.slice(-1)[0].val} &emsp;<b>RH</b> ${rawData['sen55/rh'].last100.slice(-1)[0].val}% <br>
+                &emsp;<b>PM2P5</b> ${rawData['sen55/pm2p5'].last100.slice(-1)[0].val} &emsp;<b>Temperature</b> ${rawData['sen55/temperature'].last100.slice(-1)[0].val}C (${(rawData['sen55/temperature'].last100.slice(-1)[0].val * 9/5) + 32} F)<br>
+                &emsp;<b>PM4P0</b> ${rawData['sen55/pm4p0'].last100.slice(-1)[0].val} &emsp;<b>VOC Index</b> ${rawData['sen55/voc'].last100.slice(-1)[0].val} <br> 
+                &emsp;<b>PM10P0</b> ${rawData['sen55/pm10p0'].last100.slice(-1)[0].val} &emsp;<b>NOx Index</b> ${rawData['sen55/nox'].last100.slice(-1)[0].val} <br>
+                &emsp;<b>Status</b> ${rawData['sen55/status'].last100.slice(-1)[0].val} &emsp;<b>Timestamp</b> ${new Date(rawData['sen55/pm1p0'].last100.slice(-1)[0].time)} <br>
+            `
+        })();
+    </script>
+</html>
