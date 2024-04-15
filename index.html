@@ -34,14 +34,16 @@
             let data = timeScales.reduce((ret, currScale) => {
                 ret[currScale] = Object.keys(rawData).reduce((sensorRet, currSensor) => {
                         // sensorRet[currSensor] = rawData[currSensor][currScale];
-                        if (sensorRet.datasets.length === 0) {
-                            sensorRet['labels'] = (rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => new Date(point.time).toTimeString().split(' ')[0]))
+                        if (!currSensor.includes('status')) {
+                            if (sensorRet.datasets.length === 0) {
+                                sensorRet['labels'] = (rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => new Date(point.time).toTimeString().split(' ')[0]))
+                            }
+                            sensorRet.datasets.push({
+                                label: currSensor,
+                                data: rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val),
+                                borderWidth: 1
+                            });
                         }
-                        sensorRet.datasets.push({
-                            label: currSensor,
-                            data: rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val),
-                            borderWidth: 1
-                        });
 
                         return sensorRet;
                     }, {labels: [], datasets: []})

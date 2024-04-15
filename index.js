@@ -34,7 +34,7 @@ client.on('message', (topic, message) => {
                         time: new Date().toString(),
                     },
                     ...data[topic]?.last100
-                ].slice(0, 100).reverse()
+                ].slice(0, 100)
             :
                 [
                     {
@@ -51,7 +51,7 @@ client.on('message', (topic, message) => {
                         time: new Date().toString(),
                     },
                     ...data[topic]?.last100MinuteIntervals
-                ].slice(0, 100).reverse()
+                ].slice(0, 100)
             : data[topic]?.last100MinuteIntervals?.length >= 0 ?
                 [ 
                     ...data[topic].last100MinuteIntervals
@@ -72,7 +72,7 @@ client.on('message', (topic, message) => {
                         time: new Date().toString(),
                     },
                     ...data[topic]?.last100FifteenMinuteIntervals
-                ].slice(0, 100).reverse()
+                ].slice(0, 100)
             : data[topic]?.last100FifteenMinuteIntervals?.length >= 0 ?
                 [ 
                     ...data[topic].last100FifteenMinuteIntervals
@@ -93,7 +93,7 @@ client.on('message', (topic, message) => {
                         time: new Date().toString(),
                     },
                     ...data[topic]?.last100HourIntervals
-                ].slice(0, 100).reverse()
+                ].slice(0, 100)
             : data[topic]?.last100HourIntervals?.length >= 0 ?
                 [ 
                     ...data[topic].last100HourIntervals
