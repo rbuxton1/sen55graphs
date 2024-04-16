@@ -12,15 +12,19 @@
             <br><hr>
             <h1>Last 100 data</h1>
             <canvas id="last100"></canvas>
+            <p id="last100Avgs"></p>
             <br><hr>
             <h1>Last 100 Minute Intervals</h1>
             <canvas id="last100minutes"></canvas>
+            <p id="last100MinutesAvgs"></p>
             <br><hr>
             <h1>Last 100 15 Minute Intervals</h1>
             <canvas id="last15minutes"></canvas>
+            <p id="last10015MinuteAvgs"></p>
             <br><hr>
             <h1>Last 100 Hour Intervals</h1>
             <canvas id="last100hours"></canvas>
+            <p id="last100HoursAvgs"></p>
         </div>
     </body>
     <script>
@@ -41,6 +45,7 @@
                             sensorRet.datasets.push({
                                 label: currSensor,
                                 data: rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val),
+                                avg: Math.trunc(rawData[currSensor][currScale].sort((a, b) => new Date(a.time) - new Date(b.time)).map(point => point.val).reduce((acc, next) => acc + parseFloat(next), 0.0) / rawData[currSensor][currScale].length * 100) / 100,
                                 borderWidth: 1
                             });
                         }
@@ -51,6 +56,16 @@
                 return ret;
             }, {});
             console.log('data', data);
+
+            const setAvgs = (target, datasets) => {
+                document.getElementById(target).innerHTML = `
+                <b>Averages (${datasets[0].data.length}/100)</b><br>
+                &emsp;<b>PM1P0</b> ${datasets.filter(ds => ds.label === 'sen55/pm1p0')[0].avg} µg/m^3 &emsp;<b>RH</b> ${datasets.filter(ds => ds.label === 'sen55/rh')[0].avg}% <br>
+                &emsp;<b>PM2P5</b> ${datasets.filter(ds => ds.label === 'sen55/pm2p5')[0].avg} µg/m^3 &emsp;<b>Temperature</b> ${datasets.filter(ds => ds.label === 'sen55/temperature')[0].avg}C (${(datasets.filter(ds => ds.label === 'sen55/temperature')[0].avg * 9/5) + 32} F)<br>
+                &emsp;<b>PM4P0</b> ${datasets.filter(ds => ds.label === 'sen55/pm4p0')[0].avg} µg/m^3 &emsp;<b>VOC Index</b> ${datasets.filter(ds => ds.label === 'sen55/voc')[0].avg} <br> 
+                &emsp;<b>PM10P0</b> ${datasets.filter(ds => ds.label === 'sen55/pm10p0')[0].avg} µg/m^3 &emsp;<b>NOx Index</b> ${datasets.filter(ds => ds.label === 'sen55/nox')[0].avg} <br>
+            `
+            }
 
             // Charts
             const last100 = document.getElementById('last100');
@@ -72,6 +87,7 @@
                     }
                 }
             });
+            setAvgs('last100Avgs', data.last100.datasets)
             const last100minutes = document.getElementById('last100minutes');
             new Chart(last100minutes, {
                 type: 'line',
@@ -91,6 +107,7 @@
                     }
                 }
             });
+            setAvgs('last100MinutesAvgs', data.last100MinuteIntervals.datasets);
             const last15minutes = document.getElementById('last15minutes');
             new Chart(last15minutes, {
                 type: 'line',
@@ -110,6 +127,7 @@
                     }
                 }
             });
+            setAvgs('last10015MinuteAvgs', data.last100FifteenMinuteIntervals.datasets);
             const last100hours = document.getElementById('last100hours');
             new Chart(last100hours, {
                 type: 'line',
@@ -129,12 +147,13 @@
                     }
                 }
             });
+            setAvgs('last100HoursAvgs', data.last100HourIntervals.datasets);
 
             document.getElementById('lastData').innerHTML = `
-                &emsp;<b>PM1P0</b> ${rawData['sen55/pm1p0'].last100.slice(-1)[0].val} &emsp;<b>RH</b> ${rawData['sen55/rh'].last100.slice(-1)[0].val}% <br>
-                &emsp;<b>PM2P5</b> ${rawData['sen55/pm2p5'].last100.slice(-1)[0].val} &emsp;<b>Temperature</b> ${rawData['sen55/temperature'].last100.slice(-1)[0].val}C (${(rawData['sen55/temperature'].last100.slice(-1)[0].val * 9/5) + 32} F)<br>
-                &emsp;<b>PM4P0</b> ${rawData['sen55/pm4p0'].last100.slice(-1)[0].val} &emsp;<b>VOC Index</b> ${rawData['sen55/voc'].last100.slice(-1)[0].val} <br> 
-                &emsp;<b>PM10P0</b> ${rawData['sen55/pm10p0'].last100.slice(-1)[0].val} &emsp;<b>NOx Index</b> ${rawData['sen55/nox'].last100.slice(-1)[0].val} <br>
+                &emsp;<b>PM1P0</b> ${rawData['sen55/pm1p0'].last100.slice(-1)[0].val} µg/m^3 &emsp;<b>RH</b> ${rawData['sen55/rh'].last100.slice(-1)[0].val}% <br>
+                &emsp;<b>PM2P5</b> ${rawData['sen55/pm2p5'].last100.slice(-1)[0].val} µg/m^3 &emsp;<b>Temperature</b> ${rawData['sen55/temperature'].last100.slice(-1)[0].val}C (${(rawData['sen55/temperature'].last100.slice(-1)[0].val * 9/5) + 32} F)<br>
+                &emsp;<b>PM4P0</b> ${rawData['sen55/pm4p0'].last100.slice(-1)[0].val} µg/m^3 &emsp;<b>VOC Index</b> ${rawData['sen55/voc'].last100.slice(-1)[0].val} <br> 
+                &emsp;<b>PM10P0</b> ${rawData['sen55/pm10p0'].last100.slice(-1)[0].val} µg/m^3 &emsp;<b>NOx Index</b> ${rawData['sen55/nox'].last100.slice(-1)[0].val} <br>
                 &emsp;<b>Status</b> ${rawData['sen55/status'].last100.slice(-1)[0].val} &emsp;<b>Timestamp</b> ${new Date(rawData['sen55/pm1p0'].last100.slice(-1)[0].time)} <br>
             `
         })();
